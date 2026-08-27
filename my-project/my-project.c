@@ -3,6 +3,7 @@
 #include <libopencm3/stm32/usart.h>
 
 // System functions
+void clock_config (void);
 void gpio_config  (void);
 void usart_config (void);
 
@@ -11,11 +12,22 @@ void keys_control (uint8_t key, uint8_t state);
 void usart_send_message (const uint8_t *message);
 
 // Realization
-void gpio_config  (void)
-{  
-  // Config main keys
+void clock_config (void)
+{
+  // Frequency
+  rcc_ahb_frequency  = 16000000U;
+  rcc_apb1_frequency = 16000000U;
+  rcc_apb2_frequency = 16000000U;
+    
+  // Clock for port C
   rcc_periph_clock_enable (RCC_GPIOC);
   
+  // Clock for usart1
+  rcc_periph_clock_enable(RCC_USART1);
+}
+void gpio_config  (void)
+{  
+  // Config main keys  
   gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO7);
   gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
   gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
@@ -23,9 +35,6 @@ void gpio_config  (void)
 
 void usart_config (void)
 {
-  // Usart clock
-  rcc_periph_clock_enable(RCC_USART1);
-  
   // Alternate function for tx
   gpio_mode_setup(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO4 | GPIO5);
   gpio_set_af(GPIOC, GPIO_AF7, GPIO4 | GPIO5);
@@ -74,6 +83,7 @@ void keys_control (uint8_t key, uint8_t state)
 
 int main(void) 
 {
+  clock_config ();
   gpio_config  (); 
   usart_config ();
   
