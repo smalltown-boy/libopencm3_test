@@ -15,9 +15,7 @@ void usart_send_message (const uint8_t *message);
 void clock_config (void)
 {
   // Frequency
-  rcc_ahb_frequency  = 16000000U;
-  rcc_apb1_frequency = 16000000U;
-  rcc_apb2_frequency = 16000000U;
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_3V3_170MHZ]);
     
   // Clock for port C
   rcc_periph_clock_enable (RCC_GPIOC);
