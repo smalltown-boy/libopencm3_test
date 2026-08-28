@@ -14,8 +14,8 @@
 class Key
 {
     public:
-        void config  (void);
-        void control (uint8_t key, uint8_t state);
+        void config  (void);                        // Конфигурирование ключей
+        void control (uint8_t key, uint8_t state);  // Управление ключами
         
 };
 

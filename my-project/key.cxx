@@ -3,12 +3,12 @@
 
 void Key::config ()
 {
-  // Config main keys  
+  // Настройка выводов для управления основными ключами
   gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO7);
   gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
   gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
   
-  // Config pre-charging line
+  // Настройка выводов для управления линией перезаряда
   gpio_mode_setup (GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO14);
 }
 
@@ -16,12 +16,14 @@ void Key::control (uint8_t key, uint8_t state)
 {
   uint16_t output_pins[] = {GPIO7, GPIO8, GPIO9, GPIO14};
   
-  // For safety
+  // Для предотвращения ввода неверных параметров
   if(key > 3 || state > 1) 
     return;
-    
+
+  // Управление ключами
   switch(key)
   {
+    // Так как основные ключи относятся к одному и тому же порту, используем такую конструкцию
     case KEY_MAIN_1: 
     case KEY_MAIN_2: 
     case KEY_MAIN_3:
@@ -35,6 +37,7 @@ void Key::control (uint8_t key, uint8_t state)
       }
     break;
     
+    // Линия перезаряда находится на другом порту, поэтому она отдельно
     case KEY_PRECHARGE:
       if(state)
       {

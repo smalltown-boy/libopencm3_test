@@ -2,61 +2,59 @@
 #include <libopencm3/stm32/gpio.h>
 #include <stdio.h>
 
-// Custom
+// Собственные библиотеки
 #include "usart.hpp"
 #include "adc.hpp"
 #include "key.hpp"
 
-// Define's
+// Дефайны
 #define CYCLE_COUNT 1000
 #define LOWER_EDGE  2200
 #define UPPER_EDGE  2700
 
-// Variable's
-char output_voltage_buffer[32];
-char output_temp_buffer[32];
-uint16_t adc_voltage;
+// Переменные
+char output_voltage_buffer[32]; // Для вывода напряжения батареи
+char output_temp_buffer[32];    // Для вывода температуры резистора
+
+uint16_t adc_voltage;           // Переменные для "сырых" знацений АЦП
 uint16_t adc_temp;
-uint32_t battery_voltage;
+
+uint32_t battery_voltage;       // Для получения итоговых значений
 float resistor_temp;
 
-// System functions
+// Прототипы функций
 void clock_config (void);
 
-// Realization
+// Настройка тактирования
 void clock_config (void)
 {
-  // Frequency
+  // Настройка частоты микроконтроллера
   rcc_clock_setup_pll(&rcc_hse_8mhz_3v3[RCC_CLOCK_3V3_168MHZ]);
     
-  // Clock for port C
+  // Включение тактирования портов ввода-вывода
+  rcc_periph_clock_enable (RCC_GPIOA);
+  rcc_periph_clock_enable (RCC_GPIOB);
   rcc_periph_clock_enable (RCC_GPIOC);
   
-  // Clock for port A
-  rcc_periph_clock_enable (RCC_GPIOA);
-  
-  // Clock for port B
-  rcc_periph_clock_enable (RCC_GPIOB);
-  
-  // Clock for usart1
+  // Включение тактирования серийного интерфейса
   rcc_periph_clock_enable(RCC_USART1);
   
-  // Clock for ADC
+  // Включение тактирования АЦП
   rcc_periph_clock_enable(RCC_ADC1);
 }
 
 
 int main(void) 
 {
-  clock_config ();
+  clock_config ();    // Включение тактирования
   
   Usart uart;
   Adc adc;
   Key key;
   
-  uart.config();
-  adc.config();
-  key.config();
+  uart.config();      // Конфигурирование серийного интерфейса
+  adc.config();       // Конфигурирование АЦП
+  key.config();       // Конфигурирование ключей
   
   while(1)
   {        
