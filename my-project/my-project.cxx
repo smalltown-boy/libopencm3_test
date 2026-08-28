@@ -57,8 +57,6 @@ int main(void)
   
   while(1)
   {
-    adc_value = adc.read_native(3); //ADC_CHANNEL_3
-    voltage   = adc.to_mvolts(adc_value);
     sprintf(output_buffer, "batt_voltage = %lu mV", voltage);
     uart.send_message((uint8_t *)output_buffer);
     
@@ -67,17 +65,30 @@ int main(void)
       __asm__("NOP");
     }
 
-    /*
+    
     for(int i = 0; i < CYCLE_COUNT; i++)
     {
-      adc_value = read_adc_native(ADC_CHANNEL3);
-      voltage   = adc_to_mvolts(adc_value);
+      adc_value = adc.read_native(3);
+      voltage   = adc.to_mvolts(adc_value);
       
       if(voltage > LOWER_EDGE && voltage < UPPER_EDGE)
       {
         // Beeper on and stop test
       }
+      
+      key.control(KEY_PRECHARGE, KEY_ON);
+      //pause 2.5 sec
+      key.control(KEY_MAIN_1, KEY_ON);
+      key.control(KEY_MAIN_2, KEY_ON);
+      key.control(KEY_MAIN_3, KEY_ON);
+      
+      //pause 3 sec
+      key.control(KEY_PRECHARGE, KEY_OFF);
+      
+      key.control(KEY_MAIN_1, KEY_OFF);
+      key.control(KEY_MAIN_2, KEY_OFF);
+      key.control(KEY_MAIN_3, KEY_OFF);
     }
-    */
+    
   }
 }

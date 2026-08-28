@@ -8,10 +8,13 @@
 #define KEY_MAIN_3 2
 #define KEY_PRECHARGE 3
 
+#define KEY_ON  1
+#define KEY_OFF 0
+
 class Key
 {
     public:
-        void config (void);
+        void config  (void);
         void control (uint8_t key, uint8_t state);
         
 };
