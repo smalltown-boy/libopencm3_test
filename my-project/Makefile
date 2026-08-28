@@ -6,6 +6,7 @@ CXXFILES = my-project.cxx
 CXXFILES += usart.cxx
 CXXFILES += adc.cxx
 CXXFILES += key.cxx
+CXXFILES += beep.cxx
 CFILES += api.c
 AFILES += api-asm.S
 
