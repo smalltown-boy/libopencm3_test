@@ -8,6 +8,7 @@ void Adc::config   (void)
 {
   // Config pin A0 for analog mode
   gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO3);
+  gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO7);
   
   adc_power_off(ADC1);
   adc_disable_scan_mode(ADC1);

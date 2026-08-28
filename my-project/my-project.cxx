@@ -13,9 +13,12 @@
 #define UPPER_EDGE  2700
 
 // Variable's
-char output_buffer[32];
-uint16_t adc_value;
-uint32_t voltage;
+char output_voltage_buffer[32];
+char output_temp_buffer[32];
+uint16_t adc_voltage;
+uint16_t adc_temp;
+uint32_t battery_voltage;
+float resistor_temp;
 
 // System functions
 void clock_config (void);
@@ -56,38 +59,52 @@ int main(void)
   key.config();
   
   while(1)
-  {
-    sprintf(output_buffer, "batt_voltage = %lu mV", voltage);
-    uart.send_message((uint8_t *)output_buffer);
-    
-    for (int i = 0; i < 30000000; i++) 
-    {	
-      __asm__("NOP");
-    }
-
-    
+  {        
     for(int i = 0; i < CYCLE_COUNT; i++)
     {
-      adc_value = adc.read_native(3);
-      voltage   = adc.to_mvolts(adc_value);
+      adc_voltage = adc.read_native(3);
+      battery_voltage   = adc.to_mvolts(adc_voltage);
       
-      if(voltage > LOWER_EDGE && voltage < UPPER_EDGE)
+      sprintf(output_voltage_buffer, "batt_voltage = %lu mV", battery_voltage);
+      uart.send_message((uint8_t *)output_voltage_buffer);
+      
+      if(battery_voltage > LOWER_EDGE && battery_voltage < UPPER_EDGE)
       {
         // Beeper on and stop test
       }
       
       key.control(KEY_PRECHARGE, KEY_ON);
-      //pause 2.5 sec
+      
+      // 2.5 sec
+      for (uint32_t x = 0; x < 52500000; x++)
+      {
+        __asm__("nop");
+      } 
+      
       key.control(KEY_MAIN_1, KEY_ON);
       key.control(KEY_MAIN_2, KEY_ON);
       key.control(KEY_MAIN_3, KEY_ON);
       
-      //pause 3 sec
+      // 3 sec
+      for (uint32_t y = 0; y < 63000000; y++)
+      {
+        __asm__("nop");
+      }
+
       key.control(KEY_PRECHARGE, KEY_OFF);
       
       key.control(KEY_MAIN_1, KEY_OFF);
       key.control(KEY_MAIN_2, KEY_OFF);
       key.control(KEY_MAIN_3, KEY_OFF);
+      
+      adc_temp = adc.read_native(7);
+      resistor_temp = adc.calc_temp(adc_temp);
+      
+      //
+      int temp = (int)(resistor_temp * 10.0f);
+      snprintf(output_temp_buffer, sizeof(output_temp_buffer), "Temperature = %d.%d C", temp / 10, temp % 10);
+      
+      uart.send_message((uint8_t *)output_temp_buffer);
     }
     
   }
