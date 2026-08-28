@@ -3,7 +3,7 @@
 #include <libopencm3/stm32/adc.h>
 #include "adc.hpp"
 
-void Adc::adc_config   (void)
+void Adc::config   (void)
 {
   // Config pin A0 for analog mode
   gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO3);
@@ -15,7 +15,7 @@ void Adc::adc_config   (void)
   adc_power_on(ADC1);
 }
 
-void Adc::adc_read_native(uint8_t channel)
+uint16_t  Adc::read_native(uint8_t channel)
 {
   uint8_t channel_array[16];
   channel_array[0] = channel;
@@ -26,7 +26,7 @@ void Adc::adc_read_native(uint8_t channel)
   return reg16;
 }
 
-uint32_t Adc::adc_to_mvolts(uint16_t value)
+uint32_t Adc::to_mvolts(uint16_t value)
 {
     return ((uint32_t)value * 3300) / 4095;
 }

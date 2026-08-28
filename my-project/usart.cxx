@@ -3,7 +3,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include "usart.hpp"
 
-void Usart::usart_config(void)
+void Usart::config(void)
 {
   // Alternate function for tx
   gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9 | GPIO10);
@@ -21,7 +21,7 @@ void Usart::usart_config(void)
   usart_enable(USART1);
 }
 
-void Usart::usart_send_message (const uint8_t *message)
+void Usart::send_message (const uint8_t *message)
 {
   while(*message)
   {

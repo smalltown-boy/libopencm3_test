@@ -6,8 +6,8 @@
 class Usart
 {
     public:
-        void usart_config (void);
-        void usart_send_message (const uint8_t *message);
+        void config (void);
+        void send_message (const uint8_t *message);
 };
 
 #endif

@@ -5,6 +5,7 @@ SHARED_DIR = ../my-common-code
 CXXFILES = my-project.cxx
 CXXFILES += usart.cxx
 CXXFILES += adc.cxx
+CXXFILES += key.cxx
 CFILES += api.c
 AFILES += api-asm.S
 

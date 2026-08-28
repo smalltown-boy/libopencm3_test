@@ -6,9 +6,9 @@
 class Adc
 {
     public:
-        void adc_config                 (void);
-        static uint16_t adc_read_native (uint8_t channel);
-        uint32_t adc_to_mvolts          (uint16_t value);
+        void config                 (void);
+        static uint16_t read_native (uint8_t channel);
+        uint32_t to_mvolts          (uint16_t value);
 };
 
 #endif

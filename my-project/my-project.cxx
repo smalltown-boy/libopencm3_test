@@ -1,12 +1,11 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-
-#include <libopencm3/stm32/adc.h>
 #include <stdio.h>
 
 // Custom
 #include "usart.hpp"
 #include "adc.hpp"
+#include "key.hpp"
 
 // Define's
 #define CYCLE_COUNT 1000
@@ -20,10 +19,6 @@ uint32_t voltage;
 
 // System functions
 void clock_config (void);
-void gpio_config  (void);
-
-// User finctions
-void keys_control        (uint8_t key, uint8_t state);
 
 // Realization
 void clock_config (void)
@@ -47,34 +42,6 @@ void clock_config (void)
   rcc_periph_clock_enable(RCC_ADC1);
 }
 
-void gpio_config  (void)
-{  
-  // Config main keys  
-  gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO7);
-  gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
-  gpio_mode_setup (GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
-  
-  // Config pre-charging line
-  gpio_mode_setup (GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO14);
-}
-
-void keys_control (uint8_t key, uint8_t state)
-{
-  uint16_t output_pins[] = {GPIO7, GPIO8, GPIO9};
-  
-  // For safety
-  if(key > 2 || state > 1) 
-    return;
-
-  if(state)
-  {
-    gpio_set    (GPIOC, output_pins[key]);
-  }
-  else
-  {
-    gpio_clear  (GPIOC, output_pins[key]);
-  }
-}
 
 int main(void) 
 {
@@ -82,18 +49,18 @@ int main(void)
   
   Usart uart;
   Adc adc;
+  Key key;
   
-  uart.usart_config();
-  adc.adc_config();
-  
-  gpio_config  (); 
+  uart.config();
+  adc.config();
+  key.config();
   
   while(1)
   {
-    adc_value = adc.adc_read_native(ADC_CHANNEL3);
-    voltage   = adc.adc_to_mvolts(adc_value);
+    adc_value = adc.read_native(3); //ADC_CHANNEL_3
+    voltage   = adc.to_mvolts(adc_value);
     sprintf(output_buffer, "batt_voltage = %lu mV", voltage);
-    uart.usart_send_message((uint8_t *)output_buffer);
+    uart.send_message((uint8_t *)output_buffer);
     
     for (int i = 0; i < 30000000; i++) 
     {	
