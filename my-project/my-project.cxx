@@ -24,11 +24,9 @@ uint16_t adc_temp;
 uint32_t battery_voltage;       // Для получения итоговых значений
 float resistor_temp;
 
-bool failure = false;           // Флаг для отслеживания сбоя
-
 // Прототипы функций
 void clock_config (void);
-bool test (void);
+bool test (int count);
 
 // Настройка тактирования
 void clock_config (void)
@@ -48,11 +46,62 @@ void clock_config (void)
   rcc_periph_clock_enable(RCC_ADC1);
 }
 
+bool test (int count)
+{
+  for(int i = 0; i < count; i++)                                  	// Цикл на 1000 итераций
+  {
+    adc_voltage = adc.read_native(3);                                   // Получаем "сырое" значение из АЦП (батарея, канал 3)
+    battery_voltage   = adc.to_mvolts(adc_voltage);                     // Конвертируем его в милливольты
+    
+    if(battery_voltage > LOWER_EDGE && battery_voltage < UPPER_EDGE)    // Проводим приблизительное сравнение (акб?)
+    {
+      beep.on();          // Если условие истинно, включаем сигнализацию
+      return false;       // Выходим из цикла
+    }
+      
+    key.control(KEY_PRECHARGE, KEY_ON);               // Активируем цепь предзаряда
+      
+    // На реализацию нормальных задержек не хватило времени (2.5 сек)
+    for (uint32_t x = 0; x < 52500000; x++)
+    {
+      __asm__("nop");
+    } 
+      
+    key.control(KEY_MAIN_1, KEY_ON);                  // Активируем основные ключи
+    key.control(KEY_MAIN_2, KEY_ON);
+    key.control(KEY_MAIN_3, KEY_ON);
+      
+    // 3 сек.
+    for (uint32_t y = 0; y < 63000000; y++)
+    {
+      __asm__("nop");
+    }
+
+    key.control(KEY_PRECHARGE, KEY_OFF);              // Выключаем все ключи
+      
+    key.control(KEY_MAIN_1, KEY_OFF);
+    key.control(KEY_MAIN_2, KEY_OFF);
+    key.control(KEY_MAIN_3, KEY_OFF);
+      
+    adc_temp = adc.read_native(7);                    // Получение "сырого" значения из АЦП (температура, канал 7)
+    resistor_temp = adc.calc_temp(adc_temp);          // Получаем значение температуры термистора
+      
+    // Включение поддержки формата чисел с плавающей точкой не сработала через мэйкфайл
+    // Был найден такой выход
+    int temp = (int)(resistor_temp * 10.0f);
+    snprintf(output_temp_buffer, sizeof(output_temp_buffer), "Temperature = %d.%d C", temp / 10, temp % 10);
+      
+    uart.send_message((uint8_t *)output_temp_buffer); // Отправление текущей температуры через серийный интерфейс
+  }
+  
+  return true;  // Тест завершён, выходим из функции
+}
+
 int main(void) 
 {
   clock_config ();    // Включение тактирования
   
-  Usart uart;
+  Usart uart;         // Создаём объекты классов
   Adc adc;
   Key key;
   Beeper beep;
@@ -65,56 +114,9 @@ int main(void)
   
   while(1)
   {        
-    for(int i = 0; i < CYCLE_COUNT; i++)                                  // Цикл на 1000 итераций
+    if(!test(CYCLE_COUNT))     // Запуск теста с необходимым количеством итераций
     {
-      adc_voltage = adc.read_native(3);                                   // Получаем "сырое" значение из АЦП (батарея, канал 3)
-      battery_voltage   = adc.to_mvolts(adc_voltage);                     // Конвертируем его в милливольты
-    
-      if(battery_voltage > LOWER_EDGE && battery_voltage < UPPER_EDGE)    // Проводим приблизительное сравнение (акб?)
-      {
-        beep.on();          // Если условие истинно, включаем сигнализацию
-        failure = true;     // Поднимаем флаг ошибки
-        break;              // Выходим из цикла
-      }
-      
-      key.control(KEY_PRECHARGE, KEY_ON);               // Активируем цепь предзаряда
-      
-      // На реализацию нормальных задержек не хватило времени (2.5 сек)
-      for (uint32_t x = 0; x < 52500000; x++)
-      {
-        __asm__("nop");
-      } 
-      
-      key.control(KEY_MAIN_1, KEY_ON);                  // Активируем основные ключи
-      key.control(KEY_MAIN_2, KEY_ON);
-      key.control(KEY_MAIN_3, KEY_ON);
-      
-      // 3 сек.
-      for (uint32_t y = 0; y < 63000000; y++)
-      {
-        __asm__("nop");
-      }
-
-      key.control(KEY_PRECHARGE, KEY_OFF);              // Выключаем все ключи
-      
-      key.control(KEY_MAIN_1, KEY_OFF);
-      key.control(KEY_MAIN_2, KEY_OFF);
-      key.control(KEY_MAIN_3, KEY_OFF);
-      
-      adc_temp = adc.read_native(7);                    // Получение "сырого" значения из АЦП (температура, канал 7)
-      resistor_temp = adc.calc_temp(adc_temp);          // Получаем значение температуры термистора
-      
-      // Включение поддержки формата чисел с плавающей точкой не сработала через мэйкфайл
-      // Был найден такой выход
-      int temp = (int)(resistor_temp * 10.0f);
-      snprintf(output_temp_buffer, sizeof(output_temp_buffer), "Temperature = %d.%d C", temp / 10, temp % 10);
-      
-      uart.send_message((uint8_t *)output_temp_buffer); // Отправление текущей температуры через серийный интерфейс
-    }
-    
-    if(failure)   // Если был получен флаг сбоя - просто крутимся в бесконечном цикле
-    {
-      continue;
+      continue;                // Пока тест не завершён, проддолжаем выполнение
     }
   }
 }
